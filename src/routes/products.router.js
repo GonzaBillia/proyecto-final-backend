@@ -1,7 +1,8 @@
 import {Router} from "express"
+import productsManager from "../managers/productsManager"
 
 const router = Router()
-const products = []
+const products = new productsManager()
 
 //Get todos los productos
 router.get("/", (req, res) => {
@@ -29,8 +30,14 @@ router.post("/", (req, res) => {
         status: true,
         category
     }
-    products.push(product)
-    res.send(product)
+
+    if(!title || !description || !price || !thumbnail || !code || !stock || !category) {
+        return res.status(400).send({status: "Error", message: "Todos los campos son obligatorios"})
+    }
+
+    products.addProduct(product)
+    
+    return res.status(201).send({status: "Success", message: "Producto agregado", data: product})
 })
 
 //put proyecto por id
