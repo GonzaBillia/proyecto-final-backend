@@ -1,8 +1,8 @@
 {
   "name": "proyecto-final-backend",
   "version": "1.0.0",
-  "description": "",
-  "main": "index.js",
+  "description": "Servidor NodeJS - Ecommerce",
+  "main": "app.js",
   "type": "module",
   "scripts": {
     "start": "node --watch --no-warnings ./src/app.js",
@@ -10,7 +10,7 @@
     "stop-linux": "killall -9 node"
   },
   "keywords": [],
-  "author": "",
+  "author": "Gonzalo Billia",
   "license": "ISC",
   "dependencies": {
     "express": "^4.19.2"
