@@ -1,23 +1,35 @@
 import {Router} from "express"
-import productsManager from "../managers/productsManager"
+import productsManager from "../managers/productsManager.js"
 
 const router = Router()
-const products = new productsManager()
+const Manager = new productsManager()
 
 //Get todos los productos
-router.get("/", (req, res) => {
-    res.send({products})
+router.get("/", async (req, res) => {
+    const {limit} = req.query
+    if(limit !== undefined) {
+        const products = Manager.obtenerTodos(limit)
+        return res.status(200).send({state: "success", data: products})
+    }
+
+    const products = await Manager.obtenerTodos()
+    return res.status(200).send({state: " this success", data: products})
 })
 
 //get producto por id
-router.get("/:pid", (req, res) => {
-    const {id} = req.params
-    const product = products.find(product => product.id === id)
-    res.send(product)
+router.get("/:pid", async (req, res) => {
+    const {pid} = req.params
+    const product = await Manager.obtenerPorId(pid)
+
+    if(product === undefined) {
+        return res.status(404).send({status: "Error", message: "No se encontro el producto"})
+    }
+
+    return res.status(200).send({status: "Success", message: "Producto encontrado", data: product})
 })
 
 //post nuevo producto
-router.post("/", (req, res) => {
+router.post("/", async (req, res) => {
     const {title, description, price, thumbnail, code, stock, category} = req.body
     const product = {
         id: Date.now(),
@@ -35,34 +47,54 @@ router.post("/", (req, res) => {
         return res.status(400).send({status: "Error", message: "Todos los campos son obligatorios"})
     }
 
-    products.addProduct(product)
+    await Manager.addProduct(product)
     
     return res.status(201).send({status: "Success", message: "Producto agregado", data: product})
 })
 
 //put proyecto por id
-router.put("/:pid", (req, res) => {
+router.put("/:pid", async (req, res) => {
     const {id} = req.params
     const {title, description, price, thumbnail, code, stock, status, category} = req.body
-    const product = products.find(product => product.id === id)
-    product.title = title
-    product.description = description
-    product.price = price
-    product.thumbnail = thumbnail
-    product.code = code
-    product.stock = stock
-    product.status = status
-    product.category = category
-    res.send({product})
+    const products = await Manager.obtenerTodos()
+    const indice = await products.findIndex(product => product.id === Number(id))
+
+    if(indice >= 0) {
+        return res.status(404).send({status: "Error", message: "No se encontro el producto"})
+    }
+
+    if(!title || !description || !price || !thumbnail || !code || !stock || !status || !category) {
+        return res.status(400).send({status: "Error", message: "Todos los campos son obligatorios"})
+    }
+
+    products[indice] = {
+        title,
+        description,
+        price,
+        thumbnail: [thumbnail],
+        code,
+        stock,
+        status,
+        category
+    }
+
+    return res.status(200).send({status: "Success", message: "Producto actualizado", data: products[indice]})
+
 })
 
 //delete proyecto por id
-router.delete("/:pid", (req, res) => {
+router.delete("/:pid", async (req, res) => {
     const {id} = req.params
-    const product = products.find(product => product.id === id)
-    const index = products.indexOf(product)
-    products.splice(index, 1)
-    res.send({product})
+    const products = await Manager.obtenerTodos()
+    const indice = await products.findIndex(product => product.id === Number(id))
+
+    if(indice >= 0) {
+        return res.status(404).send({status: "Error", message: "No se encontro el producto"})
+    }
+
+    products.splice(indice, 1)
+    await Manager.eliminarProducto(products)
+    return res.status(200).send({status: "Success", message: "Producto eliminado", data: products})
 })
 
 export default router

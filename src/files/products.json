@@ -1,0 +1,26 @@
+[
+	{
+		"id": 1717281320167,
+		"title": "Ryzen 5 - 5600G",
+		"description": "A great Processor made by AMD",
+		"price": 250,
+		"thumbnail": [
+			"image.jpg"
+		],
+		"code": "R55600G",
+		"stock": 50,
+		"status": true,
+		"category": "Processors"
+	},
+	{
+		"id": 1717282264885,
+		"title": "Ryzen 7 - 5700X",
+		"description": "Powerfull Processor for Gaming",
+		"price": "380",
+		"thumbnail": "ryzen-7.jpg",
+		"code": "R75700X",
+		"stock": "100",
+		"status": true,
+		"category": "Processors"
+	}
+]
