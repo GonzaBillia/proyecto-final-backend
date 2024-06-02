@@ -35,10 +35,10 @@ router.post("/", async (req, res) => {
         id: Date.now(),
         title,
         description,
-        price,
-        thumbnail,
+        price: Number(price),
+        thumbnail: Array(thumbnail),
         code,
-        stock,
+        stock: Number(stock),
         status: true,
         category
     }
@@ -66,17 +66,19 @@ router.put("/:pid", async (req, res) => {
     if(!title || !description || !price || !thumbnail || !code || !stock || !status || !category) {
         return res.status(400).send({status: "Error", message: "Todos los campos son obligatorios"})
     }
-
+    console.log(indice)
     products[indice] = {
         title,
         description,
-        price,
-        thumbnail: [thumbnail],
+        price: Number(price),
+        thumbnail: Array(thumbnail),
         code,
-        stock,
-        status,
+        stock: Number(stock),
+        status: Boolean(status),
         category
     }
+
+    await Manager.actualizarProducto(products)
 
     return res.status(200).send({status: "Success", message: "Producto actualizado", data: products[indice]})
 

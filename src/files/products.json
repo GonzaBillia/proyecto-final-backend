@@ -13,13 +13,15 @@
 		"category": "Processors"
 	},
 	{
-		"id": 1717282264885,
-		"title": "Ryzen 7 - 5700X",
-		"description": "Powerfull Processor for Gaming",
-		"price": "380",
-		"thumbnail": "ryzen-7.jpg",
-		"code": "R75700X",
-		"stock": "100",
+		"id": 1717286820018,
+		"title": "Ryzen 3 - 5300G",
+		"description": "Good Processor for entry level Gaming",
+		"price": 150,
+		"thumbnail": [
+			"ryzen-3.jpg"
+		],
+		"code": "R35300G",
+		"stock": 80,
 		"status": true,
 		"category": "Processors"
 	}

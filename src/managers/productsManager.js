@@ -40,6 +40,10 @@ export default class productsManager {
         await this.#persistirProducto(product)
     }
 
+    async actualizarProducto(arrayProducto) {
+        await this.#reescribirProductos(arrayProducto)
+    }
+
     async obtenerTodos(limit) {
         const productos = await this.#obtenerProductos()
 
