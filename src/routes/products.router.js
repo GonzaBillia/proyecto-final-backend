@@ -8,7 +8,7 @@ const Manager = new productsManager()
 router.get("/", async (req, res) => {
     const {limit} = req.query
     if(limit !== undefined) {
-        const products = Manager.obtenerTodos(limit)
+        const products = await Manager.obtenerTodos(Number(limit))
         return res.status(200).send({state: "success", data: products})
     }
 
