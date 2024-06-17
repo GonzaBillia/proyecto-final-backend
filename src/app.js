@@ -1,7 +1,10 @@
 import express from "express"
-import path from "path"
+import path from "./utils/path.js"
 import productsRouter from "./routes/products.router.js"
 import cartsRouter from "./routes/carts.router.js"
+import serverSocket from "./config/socket.config.js"
+import viewsRouter from "./routes/views.router.js"
+import handlebarsConfig from "./config/handlebars.config.js"
 
 const app = express()
 const PORT = 8080
@@ -11,11 +14,15 @@ app.use(express.urlencoded({ extended: true }))
 app.use(express.json())
 
 //ruta estatica
-app.use("/api/public", express.static(path.join("src", "public")))
+app.use("/api/public", express.static(path.public))
 
 //routers
 app.use("/api/products", productsRouter)
 app.use("/api/carts", cartsRouter)
+app.use("/realtimeproducts", viewsRouter)
+
+//handlebars
+handlebarsConfig.config(app)
 
 //control de rutas inexistentes
 app.use("*", (req, res) => {
@@ -29,6 +36,9 @@ app.use((err, req, res) => {
 })
 
 //servidor
-app.listen(PORT, HOST, () => {
+const serverHTTP = app.listen(PORT, HOST, () => {
     console.log(`Server running at http://${HOST}:${PORT}`)
 })
+
+//socket.io
+serverSocket.config(serverHTTP)
