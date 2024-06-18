@@ -4,6 +4,7 @@ import productsRouter from "./routes/products.router.js"
 import cartsRouter from "./routes/carts.router.js"
 import serverSocket from "./config/socket.config.js"
 import viewsRouter from "./routes/views.router.js"
+import homeRouter from "./routes/home.router.js"
 import handlebarsConfig from "./config/handlebars.config.js"
 
 const app = express()
@@ -20,6 +21,7 @@ app.use("/api/public", express.static(path.public))
 app.use("/api/products", productsRouter)
 app.use("/api/carts", cartsRouter)
 app.use("/realtimeproducts", viewsRouter)
+app.use("/", homeRouter)
 
 //handlebars
 handlebarsConfig.config(app)

@@ -1,28 +1,28 @@
 [
 	{
-		"id": 1717281320167,
-		"title": "Ryzen 5 - 5600G",
-		"description": "A great Processor made by AMD",
-		"price": 250,
+		"id": 1718735902660,
+		"title": "Ryzen 3 3200G",
+		"description": "ryzen 3",
+		"price": 125,
 		"thumbnail": [
-			"image.jpg"
+			"image.png"
 		],
-		"code": "R55600G",
+		"code": "r33200g",
 		"stock": 50,
 		"status": true,
-		"category": "Processors"
+		"category": "processor"
 	},
 	{
-		"id": 1717286820018,
-		"title": "Ryzen 3 - 5300G",
-		"description": "Good Processor for entry level Gaming",
-		"price": 150,
+		"id": 1718737118203,
+		"title": "Ryzen 5 5600G",
+		"description": "ryzen 5",
+		"price": 250,
 		"thumbnail": [
-			"ryzen-3.jpg"
+			"image.png"
 		],
-		"code": "R35300G",
-		"stock": 80,
+		"code": "r55600g",
+		"stock": 50,
 		"status": true,
-		"category": "Processors"
+		"category": "processor"
 	}
 ]

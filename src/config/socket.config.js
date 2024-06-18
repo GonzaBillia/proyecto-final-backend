@@ -1,16 +1,34 @@
 import { Server } from "socket.io"
+import productsManager from "../managers/productsManager.js"
+
+let io = null
+
+const Manager = new productsManager()
 
 const config = (serverHTTP) => {
-    const io = new Server(serverHTTP)
+    io = new Server(serverHTTP)
 
-    io.on("connection", (socket) => {
+    io.on("connection", async(socket) => {
         const id = socket.client.id
         console.log("Se ha conectado un cliente ", id)
 
-        socket.on("saludo", (data)=> {
-            console.log(data.message)
+        socket.on("render-products", async() => {
+            io.emit("update-list", {products: await Manager.obtenerTodos()})
+        })
 
-            io.emit("respuesta", {message: "Hola cliente!"})
+        socket.on("delete-product", async(data) => {
+            const products = await Manager.obtenerTodos()
+            const indice = products.findIndex(product => product.id === Number(data.id))
+
+            if(indice < 0) {
+                io.emit("not-found", {message: "No se encontro el producto con ese ID"})
+                io.emit("update-list", {products: await Manager.obtenerTodos()})
+            }else{
+                products.splice(indice, 1)
+                await Manager.eliminarProducto(products)
+
+                io.emit("update-list", {products: await Manager.obtenerTodos()})
+            }
         })
 
         socket.on("disconnect", () => {
@@ -19,4 +37,12 @@ const config = (serverHTTP) => {
     })
 }
 
-export default {config}
+const updateList = (products) => {
+    io.emit("update-list", {products})
+}
+
+const sendError = (message) => {
+    io.emit("not-found", {message})
+}
+
+export default {config, updateList, sendError}

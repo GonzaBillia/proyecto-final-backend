@@ -1,12 +1,21 @@
 <header>
     <h1>HOME</h1>
-    <h2>{{title}}</h2>
 </header>
 
 <main>
     <section>
-        <div id="products">
-            {{products}}
-        </div>
+        <ul id="products">
+            {{#each products as |product|}}
+                <li>Title: {{product.title}}
+                    <ul>
+                        <li>Description: {{product.description}}</li>
+                        <li>Price: {{product.price}}</li>
+                        <li>Status: {{product.status}}</li>
+                        <li>Stock: {{product.stock}}</li>
+                        <li>Category: {{product.category}}</li>
+                    </ul>
+                </li>
+            {{/each}}
+        </ul>
     </section>
 </main>
