@@ -1,74 +1,177 @@
-import fs from "fs"
-import path from "path"
+import mongoose from "mongoose"
+import CartModel from "../models/cart.model.js"
+import mongoDB from "../config/mongoose.config.js"
 
-export default class cartsManager{
-    #rutaArchivoCartsJSON
-    constructor() {
-        this.#rutaArchivoCartsJSON = path.join(path.basename("src"), "files", "carts.json")
+import { ERROR_INVALID_ID, ERROR_NOT_FOUND_ID } from "../constants/messages.constant.js"
+
+export default class CartsManager {
+    #cartModel
+
+    constructor () {
+        this.#cartModel = CartModel
     }
 
-    #obtenerCarts = async () => {
-        //validacion de existencia de archivo
-        if(!fs.existsSync(this.#rutaArchivoCartsJSON)) {
-            await fs.promises.writeFile(this.#rutaArchivoCartsJSON, JSON.stringify([]))
+    getAll = async () => {
+        try {
+            const sort = {
+                asc: { name: 1 },
+                desc: { name: -1 },
+            };
+
+            const paginationOptions = {
+                limit: paramFilters.limit ?? 10,
+                page: paramFilters.page ?? 1,
+                sort: sort[paramFilters?.sort] ?? {},
+                populate: "products",
+                lean: true,
+            };
+
+            const cartsFound = await this.#cartModel.paginate({},paginationOptions);
+            return cartsFound;
+        } catch (error) {
+            throw new Error(error.message);
         }
-
-        //Carga de contenido y retorno de archivo JSON
-        const cartsJSON = await fs.promises.readFile(this.#rutaArchivoCartsJSON, "utf-8")
-
-        //JSON a array y retorno
-        return JSON.parse(cartsJSON)
     }
 
-    #persistirCarts = async (nuevoCart) => {
-        const carts = await this.#obtenerCarts()
+    getOneById = async (id) => {
+        try {
+            if (!mongoDB.isValidID(id)) {
+                throw new Error(ERROR_INVALID_ID)
+            }
 
-        //Agrega nuevo producto
-        carts.push(nuevoCart)
+            const cartFound = await this.#cartModel.findById(id)
 
-        const cartsActualizadosJSON = JSON.stringify(carts, null, "\t")
-        await fs.promises.writeFile(this.#rutaArchivoCartsJSON, cartsActualizadosJSON)
+            if (!cartFound) {
+                throw new Error(ERROR_NOT_FOUND_ID)
+            }
+
+            return cartFound
+        } catch (error) {
+            throw new Error(error.message)
+        }
     }
 
-    #reescribirCarts = async (arrayCarts) => {
-        const cartsActualizadosJSON = JSON.stringify(arrayCarts, null, "\t")
-        await fs.promises.writeFile(this.#rutaArchivoCartsJSON, cartsActualizadosJSON)
-    }
+    insertOne = async () => {
+        try {
+            const newCart = new CartModel()
 
-    addCart = async (nuevoCart) => {
-        await this.#persistirCarts(nuevoCart)
-    } 
+            await newCart.save()
+            return newCart
+        } catch (error) {
+            if (error instanceof mongoose.Error.ValidationError) {
+                error.message = Object.values(error.errors)[0]
+            }
 
-    getCartById = async (cid) => {
-        const carts = await this.#obtenerCarts()
-        const cart = await carts.find(cart => cart.id === Number(cid))
-        return cart 
+            throw new Error(error.message)
+        }
     }
 
     addToCart = async (cid, pid) => {
-        const carts = await this.#obtenerCarts()
-        const cart = await carts.find(cart => cart.id === Number(cid))
-        const index = await carts.indexOf(cart)
+        try {
+            if(cid !== null || cid !== undefined){
+                if(!mongoDB.isValidID(cid) || !mongoDB.isValidID(pid)) {
+                    throw new Error(ERROR_INVALID_ID)
+                }
+            } else if (cid === null || cid === undefined) {
+                try {
+                    const productFound = await this.#cartModel.getOneById(pid)
+                
+                    if (!productFound) {
+                        throw new Error(ERROR_NOT_FOUND_ID + "value: Product")
+                    }
 
-        const product = cart.products.find(product => product.id === Number(pid))
+                    const newCart = await this.insertOne()
 
-        if(product){
-            const productIndex = cart.products.indexOf(product)
-            cart.products[productIndex].quantity++
-            carts[index] = cart
-            await this.#reescribirCarts(carts)
-            return cart
-        }else{
-            const nuevoProducto = {
-                id: Number(pid),
-                quantity: 1
+                    newCart.products.push(productFound)
+                    await newCart.save()
+                    return newCart
+                } catch (error) {
+                    if (error instanceof mongoose.Error.ValidationError) {
+                        error.message = Object.values(error.errors)[0]
+                    }
+        
+                    throw new Error(error.message)
+                }
+            } else {
+                const cartFound = await this.#cartModel.getOneById(cid)
+                const productFound = await this.#cartModel.getOneById(pid)
+        
+                if (!cartFound) {
+                    throw new Error(ERROR_NOT_FOUND_ID + "value: Cart")
+                }
+        
+                if (!productFound) {
+                    throw new Error(ERROR_NOT_FOUND_ID + "value: Product")
+                }
+
+                const isNewProduct = cartFound.forEach(product => {
+                    if(product.id == pid) {return false}
+                    else {return true}
+                })
+        
+                if(isNewProduct) {
+                    cartFound.products.push(productFound)
+                    await cartFound.save()
+                    return cartFound
+                } else {
+                    const index = cartFound.products.findIndex(product => product._id == pid)
+
+                    cartFound.products[index].quantity += 1
+                    await cartFound.save()
+                    return cartFound
+                }
+            }
+        } catch (error) {
+            if (error instanceof mongoose.Error.ValidationError) {
+                error.message = Object.values(error.errors)[0]
+            }
+
+            throw new Error(error.message)
+        }
+    }
+
+    deleteOneById = async (cid, pid) => {
+        try {
+            if(!mongoDB.isValidID(pid) || !mongoDB.isValidID(cid)) {
+                throw new Error(ERROR_INVALID_ID)
+            }
+
+            const cartFound = await this.#cartModel.getOneById(cid)
+            const productFound = await this.#cartModel.getOneById(pid)
+
+            if (!cartFound) {
+                throw new Error(ERROR_NOT_FOUND_ID + "value: Cart")
             }
     
-    
-            cart.products.push(nuevoProducto)
-            carts[index] = cart
-            await this.#reescribirCarts(carts)
-            return cart
+            if (!productFound) {
+                throw new Error(ERROR_NOT_FOUND_ID + "value: Product")
+            }
+
+            cartFound.products.pull(productFound)
+            await cartFound.save()
+            return cartFound
+        } catch (error) {
+            throw new Error(error.message)
+        }
+    }
+
+    deleteAll = async (id) => {
+        try {
+            if(!mongoDB.isValidID(id)) {
+                throw new Error(ERROR_INVALID_ID)
+            }
+
+            const cartFound = await this.#cartModel.getOneById(id)
+
+            if (!cartFound) {
+                throw new Error(ERROR_NOT_FOUND_ID + "value: Cart")
+            }
+
+            cartFound.products = []
+            await cartFound.save()
+            return cartFound
+        } catch (error) {
+            throw new Error(error.message)
         }
     }
 }
