@@ -1,102 +1,63 @@
-import {Router} from "express"
-import productsManager from "../managers/productsManager.js"
+import { Router } from "express"
+import ProductsManager from "../managers/productsManager.js"
+import uploader from "../utils/uploader.js"
+
+import { ERROR_INVALID_ID, ERROR_NOT_FOUND_ID } from "../constants/messages.constant.js"
+
+const errorHandler = (res, message) => {
+    if (message === ERROR_INVALID_ID) return res.status(400).json({ status: false, message: ERROR_INVALID_ID })
+    if (message === ERROR_NOT_FOUND_ID) return res.status(404).json({ status: false, message: ERROR_NOT_FOUND_ID })
+    return res.status(500).json({ status: false, message })
+}
 
 const router = Router()
-const Manager = new productsManager()
+const Manager = new ProductsManager()
 
-//Get todos los productos
 router.get("/", async (req, res) => {
-    const {limit} = req.query
-    if(limit !== undefined) {
-        const products = await Manager.obtenerTodos(Number(limit))
-        return res.status(200).send({state: "success", data: products})
+    try {
+        const data = await Manager.getAll(req.query)
+        res.status(200).json({ status: true, payload: data })
+    } catch (error) {
+        errorHandler(res, error.message)
     }
-
-    const products = await Manager.obtenerTodos()
-    return res.status(200).send({state: " this success", data: products})
 })
 
-//get producto por id
-router.get("/:pid", async (req, res) => {
-    const {pid} = req.params
-    const product = await Manager.obtenerPorId(pid)
-
-    if(product === undefined) {
-        return res.status(404).send({status: "Error", message: "No se encontro el producto"})
+router.get("/:id", async (req, res) => {
+    try {
+        const data = await Manager.getOneById(req.params.id)
+        res.status(200).json({ status: true, payload: data })
+    } catch (error) {
+        errorHandler(res, error.message)
     }
-
-    return res.status(200).send({status: "Success", message: "Producto encontrado", data: product})
 })
 
-//post nuevo producto
-router.post("/", async (req, res) => {
-    const {title, description, price, thumbnail, code, stock, category} = req.body
-    const product = {
-        id: Date.now(),
-        title,
-        description,
-        price: Number(price),
-        thumbnail: Array(thumbnail),
-        code,
-        stock: Number(stock),
-        status: true,
-        category
+router.post ("/", uploader.single("file"), async (req, res) => {
+    try {
+        const { file } = req
+        const data = await Manager.insertOne(req.body, file)
+        res.status(201).json({ status: true, payload: data })
+    } catch (error) {
+        errorHandler(res, error.message)
     }
-
-    if(!title || !description || !price || !thumbnail || !code || !stock || !category) {
-        return res.status(400).send({status: "Error", message: "Todos los campos son obligatorios"})
-    }
-
-    await Manager.addProduct(product)
-    
-    return res.status(201).send({status: "Success", message: "Producto agregado", data: product})
 })
 
-//put proyecto por id
-router.put("/:pid", async (req, res) => {
-    const {id} = req.params
-    const {title, description, price, thumbnail, code, stock, status, category} = req.body
-    const products = await Manager.obtenerTodos()
-    const indice = await products.findIndex(product => product.id === Number(id))
-
-    if(indice >= 0) {
-        return res.status(404).send({status: "Error", message: "No se encontro el producto"})
+router.put("/:id", uploader.single("file"), async (req, res) => {
+    try {
+        const { file } = req
+        const data = await Manager.updateOneById(req.params.id, req.body, file)
+        res.status(200).json({ status: true, payload: data })
+    } catch (error) {
+        errorHandler(res, error.message)
     }
-
-    if(!title || !description || !price || !thumbnail || !code || !stock || !status || !category) {
-        return res.status(400).send({status: "Error", message: "Todos los campos son obligatorios"})
-    }
-    console.log(indice)
-    products[indice] = {
-        title,
-        description,
-        price: Number(price),
-        thumbnail: Array(thumbnail),
-        code,
-        stock: Number(stock),
-        status: Boolean(status),
-        category
-    }
-
-    await Manager.actualizarProducto(products)
-
-    return res.status(200).send({status: "Success", message: "Producto actualizado", data: products[indice]})
-
 })
 
-//delete proyecto por id
-router.delete("/:pid", async (req, res) => {
-    const {id} = req.params
-    const products = await Manager.obtenerTodos()
-    const indice = await products.findIndex(product => product.id === Number(id))
-
-    if(indice >= 0) {
-        return res.status(404).send({status: "Error", message: "No se encontro el producto"})
+router.delete("/:id", async (req, res) => {
+    try {
+        const data = await Manager.deleteOneById(req.params.id)
+        res.status(200).json({ status: true, payload: data })
+    } catch (error) {
+        errorHandler(res, error.message)
     }
-
-    products.splice(indice, 1)
-    await Manager.eliminarProducto(products)
-    return res.status(200).send({status: "Success", message: "Producto eliminado", data: products})
 })
 
 export default router

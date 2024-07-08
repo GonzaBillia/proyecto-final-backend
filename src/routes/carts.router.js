@@ -1,48 +1,78 @@
-import {Router} from "express"
-import cartsManager from "../managers/cartsManager.js"
-import productsManager from "../managers/productsManager.js"
+import { Router } from "express"
+import CartsManager from "../managers/cartsManager.js"
+
+import { ERROR_INVALID_ID, ERROR_NOT_FOUND_ID } from "../constants/messages.constant.js"
+
+const errorHandler = (res, message) => {
+    if (message === ERROR_INVALID_ID) return res.status(400).json({ status: false, message: ERROR_INVALID_ID })
+    if (message === ERROR_NOT_FOUND_ID) return res.status(404).json({ status: false, message: ERROR_NOT_FOUND_ID })
+    return res.status(500).json({ status: false, message })
+}
 
 const router = Router()
-const Manager = new cartsManager()
-const ProductManager = new productsManager()
+const Manager = new CartsManager()
 
-//get por id
-router.get("/:cid", async (req, res) => {
-    const {cid} = req.params
-    const cart = await Manager.getCartById(cid)
-    
-    if(cart === undefined) {
-        return res.status(404).send({status: "Error", message: "No se encontro el carrito"})
-    }else{
-        return res.status(200).send({status: "Success", message: "Carrito encontrado", data: cart})
+router.get("/", async (req, res) => {
+    try {
+        const data = await Manager.getAll(req.query)
+        res.status(200).json({ status: true, payload: data })
+    } catch (error) {
+        errorHandler(res, error.message)
     }
 })
 
-//post nuevo carrito
-router.post("/", async (req, res) => {
-    const cart = {
-        id: Date.now(),
-        products: []
+router.get("/:id", async (req, res) => {
+    try {
+        const data = await Manager.getOneById(req.params.id)
+        res.status(200).json({ status: true, payload: data })
+    } catch (error) {
+        errorHandler(res, error.message)
     }
-    
-    await Manager.addCart(cart)
-    
-    return res.status(201).send({status: "Success", message: "Carrito agregado", data: cart})
 })
 
-//post agregar producto a carrito
-router.post("/:cid/product/:pid", async (req, res) => {
-    const {cid, pid} = req.params
-
-    if(await Manager.getCartById(cid) === undefined) {
-        return res.status(404).send({status: "Error", message: "No se encontro el carrito"})
-    }else if(await ProductManager.obtenerPorId(pid) === undefined) {
-        return res.status(404).send({status: "Error", message: "No se encontro el producto"})
-    }else{
-        const cart = await Manager.addToCart(cid, pid)
-        return res.status(201).send({status: "Success", message: "Producto agregado al carrito", data: cart})
+router.post ("/", async (req, res) => {
+    try {
+        const data = await Manager.insertOne(req.body)
+        res.status(201).json({ status: true, payload: data })
+    } catch (error) {
+        errorHandler(res, error.message)
     }
+})
 
+router.put("/:cid", async (req, res) => {
+    try {
+        const data = await Manager.updateOneById(req.params.cid, req.body)
+        res.status(200).json({ status: true, payload: data })
+    } catch (error) {
+        errorHandler(res, error.message)
+    }
+})
+
+router.put("/:cid/products/:pid", async (req, res) => {
+    try {
+        const data = await Manager.addToCart(req.params.cid, req.params.pid)
+        res.status(200).json({ status: true, payload: data })
+    } catch (error) {
+        errorHandler(res, error.message)
+    }
+})
+
+router.delete("/:cid/products/:pid", async (req, res) => {
+    try {
+        const data = await Manager.deleteOneById(req.params.cid, req.params.pid)
+        res.status(200).json({ status: true, payload: data })
+    } catch (error) {
+        errorHandler(res, error.message)
+    }
+})
+
+router.delete("/:cid", async (req, res) => {
+    try {
+        const data = await Manager.deleteAll(req.params.cid)
+        res.status(200).json({ status: true, payload: data })
+    } catch (error) {
+        errorHandler(res, error.message)
+    }
 })
 
 export default router

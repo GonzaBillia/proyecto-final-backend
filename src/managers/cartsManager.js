@@ -66,7 +66,7 @@ export default class CartsManager {
         }
     }
 
-    addToCart = async (cid, pid) => {
+    addToCart = async (cid, pid, quantity) => {
         try {
             if(cid !== null || cid !== undefined){
                 if(!mongoDB.isValidID(cid) || !mongoDB.isValidID(pid)) {
@@ -80,9 +80,13 @@ export default class CartsManager {
                         throw new Error(ERROR_NOT_FOUND_ID + "value: Product")
                     }
 
+                    if(quantity === undefined) {
+                        quantity = 1
+                    }
+
                     const newCart = await this.insertOne()
 
-                    newCart.products.push(productFound)
+                    newCart.products.push(productFound, quantity)
                     await newCart.save()
                     return newCart
                 } catch (error) {
@@ -104,19 +108,23 @@ export default class CartsManager {
                     throw new Error(ERROR_NOT_FOUND_ID + "value: Product")
                 }
 
+                if(quantity === undefined) {
+                    quantity = 1
+                }
+
                 const isNewProduct = cartFound.forEach(product => {
                     if(product.id == pid) {return false}
                     else {return true}
                 })
         
                 if(isNewProduct) {
-                    cartFound.products.push(productFound)
+                    cartFound.products.push(productFound, quantity)
                     await cartFound.save()
                     return cartFound
                 } else {
                     const index = cartFound.products.findIndex(product => product._id == pid)
 
-                    cartFound.products[index].quantity += 1
+                    cartFound.products[index].quantity += quantity
                     await cartFound.save()
                     return cartFound
                 }
