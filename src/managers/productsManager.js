@@ -16,18 +16,19 @@ export default class ProductsManager {
         try {
             const $and = []
 
-            if (paramFilters?.title) $and.push({ title:  paramFilters.title })
+            if (paramFilters?.brand) $and.push({ brand:  paramFilters.brand })
             if (paramFilters?.category) $and.push({ category:  paramFilters.category })
+            if (paramFilters?.price) $and.push({ price:  paramFilters.price })
             if (paramFilters?.status) $and.push({ status:  paramFilters.status })
             const filters = $and.length > 0 ? { $and } : {}
-            
+        
             const sort = {
                 asc: { price: 1 },
-                desc: { price: -1 }
+                desc: { price: -1 },
             }
 
             const paginationOptions = {
-                limit: paramFilters?.limit ?? 10,
+                limit: paramFilters?.limit ?? 12,
                 page: paramFilters?.page ?? 1,
                 sort: sort[paramFilters?.sort] ?? {},
                 lean: true
@@ -90,14 +91,16 @@ export default class ProductsManager {
                 throw new Error(ERROR_NOT_FOUND_ID)
             }
 
-            productFound.title = data.title
-            productFound.description = data.description
-            productFound.price = data.price
+            productFound.title = data.title ?? productFound.title
+            productFound.description = data.description ?? productFound.description
+            productFound.brand = data.brand ?? productFound.brand
+            productFound.model = data.model ?? productFound.model
+            productFound.price = data.price ?? productFound.price
             productFound.thumbnail = newThumbnail ?? currentThumbnail
-            productFound.code = data.code
-            productFound.stock = data.stock
-            productFound.status = data.status
-            productFound.category = data.category
+            productFound.code = data.code ?? productFound.code
+            productFound.stock = data.stock ?? productFound.stock
+            productFound.status = data.status ?? productFound.status
+            productFound.category = data.category ?? productFound.category
 
             await productFound.save()
 

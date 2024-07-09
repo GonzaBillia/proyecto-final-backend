@@ -1,21 +1,58 @@
+<head>
+    <link rel="stylesheet" href="../public/css/main.css" />
+</head>
 <header>
     <h1>HOME</h1>
+    <h3>Browse Products</h3>
 </header>
 
 <main>
-    <section>
-        <ul id="products">
-            {{#each products as |product|}}
-                <li>Title: {{product.title}}
-                    <ul>
-                        <li>Description: {{product.description}}</li>
-                        <li>Price: {{product.price}}</li>
-                        <li>Status: {{product.status}}</li>
-                        <li>Stock: {{product.stock}}</li>
-                        <li>Category: {{product.category}}</li>
-                    </ul>
-                </li>
+    <section id="section-container">
+        <div id="products">
+            {{#each products.docs as |product|}}
+            <div id="product-container">
+                <img id="thumbnail" src="../public/images/{{product.thumbnail}}" alt="" />
+                <div id="info">
+                    <h3>{{product.title}}</h3>
+                    <p>{{product.category}}</p>
+                    <p>$ {{product.price}}</p>
+                </div>
+                <div id="buttons">
+                    <button id="browse">Browse</button>
+                </div>
+            </div>
             {{/each}}
-        </ul>
+        </div>
+    </section>
+    <section>
+        <div id="page-control">
+            <div id="pagination">
+                <p>Sort as Asc - Desc - None</p>
+                <div id="sort-btns">
+                    <a href="/?page={{products.page}}&sort=asc"><button>⬇</button></a>
+                    <a href="/?page={{products.page}}&sort=desc"><button>⬆</button></a>
+                    <a href="/?page={{products.page}}"><button>⬌</button></a>
+                </div>
+
+                {{#if products.hasPrevPage}}
+                <a href="/?page={{products.prevPage}}"><button>Anterior</button></a>
+                {{/if}}
+
+                {{#if products.hasNextPage}}
+                <a href="/?page={{products.nextPage}}{{products.sort}}"><button>Siguiente</button></a>
+                {{/if}}
+
+                <p>
+                    Página
+                    <span id="page">{{products.page}}</span>
+                    de
+                    <span id="total-pages">{{products.totalPages}}</span>
+                    <br />
+                    <span>{{products.totalDocs}}</span>
+                    Documentos
+                </p>
+
+            </div>
+        </div>
     </section>
 </main>
