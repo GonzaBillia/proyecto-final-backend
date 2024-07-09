@@ -4,7 +4,7 @@
 
 <main>
     <section>
-        <form method="POST" action="/realtimeproducts">
+        <form method="POST" action="/realtimeproducts" enctype="multipart/form-data">
             <h3>Add Product</h3>
             <div>
                 <label for="title">Title</label>
@@ -19,8 +19,8 @@
                 <input type="number" name="price" id="price">
             </div>
             <div>
-                <label for="thumbnail">Thumbnail</label>
-                <input type="text" name="thumbnail" id="thumbnail">
+                <label for="file">Thumbnail</label>
+                <input type="file" name="file" id="file">
             </div>
             <div>
                 <label for="code">Code</label>
@@ -57,4 +57,4 @@
 </main>
 
 <script src="/socket.io/socket.io.js"></script>
-<script src="/api/public/js/realTimeProducts.js"></script>
+<script src="/public/js/realTimeProducts.js"></script>

@@ -13,7 +13,7 @@ btnDelete.onclick = () => {
     const id = Number(inputId.value)
 
     if(id > 0) {
-        socket.emit("delete-product", {id})
+        socket.emit("delete-product", id)
         inputId.value = ""
     }
 }
@@ -22,9 +22,8 @@ socket.on("not-found", (data) => {
     alert(data.message)
 })
 
-socket.on("update-list", (data) => {
-
-    const productsL = data.products ?? []
+socket.on("update-list", (products) => {
+    const productsL = products.products ?? []
     productsList.innerHTML = ""
     productsL.forEach((product) => {
         const title = document.createElement("li")

@@ -8,6 +8,8 @@ import homeRouter from "./routes/home.router.js"
 import handlebarsConfig from "./config/handlebars.config.js"
 import mongoDB from "./config/mongoose.config.js"
 
+import { ERROR_NOT_FOUND_URL, ERROR_SERVER } from "./constants/messages.constant.js"
+
 const app = express()
 const PORT = 8080
 const HOST = "localhost" //127.0.0.1
@@ -16,7 +18,7 @@ app.use(express.urlencoded({ extended: true }))
 app.use(express.json())
 
 //ruta estatica
-app.use("/api/public", express.static(path.public))
+app.use("/public", express.static(path.public))
 
 //routers
 app.use("/api/products", productsRouter)
@@ -28,20 +30,20 @@ app.use("/", homeRouter)
 handlebarsConfig.config(app)
 
 // Control de rutas inexistentes
-server.use("*", (req, res) => {
+app.use("*", (req, res) => {
     res.status(500).send(`<h1>Error 404</h1><h3>${ERROR_NOT_FOUND_URL.message}</h3>`);
 });
 
 // Control de errores internos
-server.use((error, req, res) => {
+app.use((error, req, res) => {
     console.log("Error:", error.message);
     res.status(500).send(`<h1>Error 500</h1><h3>${ERROR_SERVER.message}</h3>`);
 });
 
 // Método oyente de solicitudes
-server.listen(PORT, () => {
+const serverHTTP = app.listen(PORT, () => {
     console.log(`Ejecutándose en http://${HOST}:${PORT}`);
-    mongoDB.connectDB();
+    mongoDB.connectDB()
 });
 
 //socket.io

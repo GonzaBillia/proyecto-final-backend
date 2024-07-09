@@ -43,7 +43,8 @@ const productSchema = new Schema({
     category: {
         type: String,
         required: [ true, "La categoria es obligatoria" ],
-        trim: true
+        trim: true,
+        uppercase: true
     },
 }, {
     timestamps: true,
