@@ -25,11 +25,11 @@ export default class CartsManager {
                 limit: paramFilters.limit ?? 10,
                 page: paramFilters.page ?? 1,
                 sort: sort[paramFilters?.sort] ?? {},
-                populate: "products",
+                populate: "products.item",
                 lean: true,
             };
 
-            const cartsFound = await this.#cartModel.paginate({},paginationOptions);
+            const cartsFound = await this.#cartModel.paginate({},paginationOptions)
             return cartsFound;
         } catch (error) {
             throw new Error(error.message);
@@ -42,7 +42,7 @@ export default class CartsManager {
                 throw new Error(ERROR_INVALID_ID)
             }
 
-            const cartFound = await this.#cartModel.findById(id)
+            const cartFound = await this.#cartModel.findById(id).populate("products.item").lean()
 
             if (!cartFound) {
                 throw new Error(ERROR_NOT_FOUND_ID)
@@ -69,11 +69,9 @@ export default class CartsManager {
         }
     }
 
-    addToCart = async (cid, pid, quantity) => {
+    addToCart = async (cid, pid, quantity, data) => {
         try {
-            console.log("entra");
-            console.log("quantity : " + quantity);
-            if(cid !== null || cid !== undefined){
+            if(cid !== null || cid !== undefined && pid !== null || pid !== undefined) {
                 if(!mongoDB.isValidID(cid) || !mongoDB.isValidID(pid)) {
                     throw new Error(ERROR_INVALID_ID)
                 }
@@ -105,11 +103,9 @@ export default class CartsManager {
                     return cartFound
                 }
 
-            } else if (cid === null || cid === undefined) {
+            } else if (cid === null || cid === undefined && pid !== null || pid !== undefined) {
                 try {
                     const productFound = await this.#productModel.findById(pid)
-
-
                 
                     if (!productFound) {
                         throw new Error(ERROR_NOT_FOUND_ID + "value: Product")
@@ -121,7 +117,7 @@ export default class CartsManager {
 
                     const newCart = await this.insertOne()
 
-                    newCart.products.push(productFound, quantity)
+                    newCart.products.push({item: productFound, quantity: quantity})
                     await newCart.save()
                     return newCart
                 } catch (error) {
@@ -132,7 +128,7 @@ export default class CartsManager {
                     throw new Error(error.message)
                 }
             } else {
-                
+                throw new Error(ERROR_INVALID_ID)
             }
         } catch (error) {
             if (error instanceof mongoose.Error.ValidationError) {
@@ -143,14 +139,37 @@ export default class CartsManager {
         }
     }
 
+    updateOneById = async (cid, data) => {
+        try {
+            if(!mongoDB.isValidID(cid)) {
+                throw new Error(ERROR_INVALID_ID)
+            }
+
+            const cartFound = await this.#cartModel.findById(cid)
+
+            if (!cartFound) {
+                throw new Error(ERROR_NOT_FOUND_ID + "value: Cart")
+            }
+
+            data.products.forEach(product => {
+                cartFound.products.push({item: product.item, quantity: product.quantity})
+                    
+            })
+            await cartFound.save()
+                    return cartFound
+        } catch (error) {
+            throw new Error(error.message)
+        }
+    }
+
     deleteOneById = async (cid, pid) => {
         try {
             if(!mongoDB.isValidID(pid) || !mongoDB.isValidID(cid)) {
                 throw new Error(ERROR_INVALID_ID)
             }
 
-            const cartFound = await this.#cartModel.getOneById(cid)
-            const productFound = await this.#cartModel.getOneById(pid)
+            const cartFound = await this.#cartModel.findById(cid)
+            const productFound = await this.#productModel.findById(pid)
 
             if (!cartFound) {
                 throw new Error(ERROR_NOT_FOUND_ID + "value: Cart")
@@ -160,7 +179,13 @@ export default class CartsManager {
                 throw new Error(ERROR_NOT_FOUND_ID + "value: Product")
             }
 
-            cartFound.products.pull(productFound)
+            const index = cartFound.products.findIndex(product => product.item == pid)
+
+            if(index == -1) {
+                throw new Error(ERROR_NOT_FOUND_ID + "value: Product")
+            }
+
+            cartFound.products.splice(index, 1)
             await cartFound.save()
             return cartFound
         } catch (error) {
