@@ -18,7 +18,7 @@
                     <p>$ {{product.price}}</p>
                 </div>
                 <div id="buttons">
-                    <button id="browse">Browse</button>
+                    <button id="browse" value="{{product.id}}" onclick="window.location.href='/product/{{product.id}}'">Browse</button>
                 </div>
             </div>
             {{/each}}

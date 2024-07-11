@@ -50,7 +50,8 @@ router.put("/:cid", async (req, res) => {
 
 router.put("/:cid/products/:pid", async (req, res) => {
     try {
-        const data = await Manager.addToCart(req.params.cid, req.params.pid)
+        const {quantity} = req.body
+        const data = await Manager.addToCart(req.params.cid, req.params.pid, quantity)
         res.status(200).json({ status: true, payload: data })
     } catch (error) {
         errorHandler(res, error.message)

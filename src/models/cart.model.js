@@ -1,15 +1,20 @@
 import { Schema, model } from "mongoose"
+import _ from "mongoose-paginate-v2"
 import paginate from "mongoose-paginate-v2"
 
 const cartSchema = new Schema({
-    products: {
-        type: [Schema.Types.ObjectId],
-        quantity: {
-            type: Number,
-            default: 1
-        },
-        ref: "products"
-    }
+    products:[ 
+        {
+            item: {
+                type: Schema.Types.ObjectId,
+                ref: "products"
+            },
+            quantity: {
+                type: Number
+            },
+            _id: false
+        }
+    ],
 },{
     timestamps: true
 })

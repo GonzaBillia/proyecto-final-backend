@@ -1,17 +1,20 @@
 import mongoose from "mongoose"
 import CartModel from "../models/cart.model.js"
+import ProductModel from "../models/product.model.js"
 import mongoDB from "../config/mongoose.config.js"
 
 import { ERROR_INVALID_ID, ERROR_NOT_FOUND_ID } from "../constants/messages.constant.js"
 
 export default class CartsManager {
     #cartModel
+    #productModel
 
     constructor () {
         this.#cartModel = CartModel
+        this.#productModel = ProductModel
     }
 
-    getAll = async () => {
+    getAll = async (paramFilters) => {
         try {
             const sort = {
                 asc: { name: 1 },
@@ -68,13 +71,45 @@ export default class CartsManager {
 
     addToCart = async (cid, pid, quantity) => {
         try {
+            console.log("entra");
+            console.log("quantity : " + quantity);
             if(cid !== null || cid !== undefined){
                 if(!mongoDB.isValidID(cid) || !mongoDB.isValidID(pid)) {
                     throw new Error(ERROR_INVALID_ID)
                 }
+
+                const cartFound = await this.#cartModel.findById(cid)
+                const productFound = await this.#productModel.findById(pid)
+        
+                if (!cartFound) {
+                    throw new Error(ERROR_NOT_FOUND_ID + "value: Cart")
+                }
+        
+                if (!productFound) {
+                    throw new Error(ERROR_NOT_FOUND_ID + "value: Product")
+                }
+
+                const isNewProduct = !cartFound.products.some(product => product.item == pid)
+
+                if(isNewProduct) {
+                    cartFound.products.push({item: productFound, quantity: quantity})
+                    await cartFound.save()
+                    return cartFound
+                }else {
+                    const index = cartFound.products.findIndex(product => product.item == pid)
+
+                    cartFound.products[index].item = productFound
+                    cartFound.products[index].quantity = quantity
+                    await cartFound.save()
+
+                    return cartFound
+                }
+
             } else if (cid === null || cid === undefined) {
                 try {
-                    const productFound = await this.#cartModel.getOneById(pid)
+                    const productFound = await this.#productModel.findById(pid)
+
+
                 
                     if (!productFound) {
                         throw new Error(ERROR_NOT_FOUND_ID + "value: Product")
@@ -97,37 +132,7 @@ export default class CartsManager {
                     throw new Error(error.message)
                 }
             } else {
-                const cartFound = await this.#cartModel.getOneById(cid)
-                const productFound = await this.#cartModel.getOneById(pid)
-        
-                if (!cartFound) {
-                    throw new Error(ERROR_NOT_FOUND_ID + "value: Cart")
-                }
-        
-                if (!productFound) {
-                    throw new Error(ERROR_NOT_FOUND_ID + "value: Product")
-                }
-
-                if(quantity === undefined) {
-                    quantity = 1
-                }
-
-                const isNewProduct = cartFound.forEach(product => {
-                    if(product.id == pid) {return false}
-                    else {return true}
-                })
-        
-                if(isNewProduct) {
-                    cartFound.products.push(productFound, quantity)
-                    await cartFound.save()
-                    return cartFound
-                } else {
-                    const index = cartFound.products.findIndex(product => product._id == pid)
-
-                    cartFound.products[index].quantity += quantity
-                    await cartFound.save()
-                    return cartFound
-                }
+                
             }
         } catch (error) {
             if (error instanceof mongoose.Error.ValidationError) {
@@ -169,7 +174,7 @@ export default class CartsManager {
                 throw new Error(ERROR_INVALID_ID)
             }
 
-            const cartFound = await this.#cartModel.getOneById(id)
+            const cartFound = await this.#cartModel.findById(id)
 
             if (!cartFound) {
                 throw new Error(ERROR_NOT_FOUND_ID + "value: Cart")
