@@ -1,0 +1,34 @@
+<head>
+    <link rel="stylesheet" href="../public/css/cart.css" />
+</head>
+<header>
+    <h1>CART</h1>
+    <h3>ID: {{_id}}</h3>
+</header>
+<main>
+    <section id="cart-container">
+        <div id="cart-table">
+            <div id="header-table">
+                <div id="header-item">
+                    <h3>Item</h3>
+                    <h3>Quantity</h3>
+                </div>
+            </div>
+            {{#each products as |product|}}
+
+            <div id="cart-item">
+                <div id="item-img">
+                    <img id="thumbnail" src="../public/images/{{product.item.thumbnail}}" alt="" />
+                </div>
+                <div id="item-title">
+                    <p>{{product.item.title}}</p>
+                </div>
+                <div id="item-quantity">
+                    <p>{{product.quantity}}</p>
+                </div>
+            </div>
+
+            {{/each}}
+        </div>
+    </section>
+</main>

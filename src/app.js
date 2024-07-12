@@ -6,6 +6,7 @@ import serverSocket from "./config/socket.config.js"
 import viewsRouter from "./routes/views.router.js"
 import homeRouter from "./routes/home.router.js"
 import productRouter from "./routes/product.router.js"
+import cartRouter from "./routes/cart.router.js"
 import handlebarsConfig from "./config/handlebars.config.js"
 import mongoDB from "./config/mongoose.config.js"
 
@@ -26,6 +27,7 @@ app.use("/api/products", productsRouter)
 app.use("/api/carts", cartsRouter)
 app.use("/realtimeproducts", viewsRouter)
 app.use("/product", productRouter)
+app.use("/cart", cartRouter)
 app.use("/", homeRouter)
 
 //handlebars
