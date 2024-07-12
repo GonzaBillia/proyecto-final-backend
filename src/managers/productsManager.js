@@ -12,6 +12,7 @@ export default class ProductsManager {
         this.#productModel = ProductModel
     }
 
+    // Lista todos los productos con filtros y paginacion
     getAll = async (paramFilters) => {
         try {
             const $and = []
@@ -41,6 +42,7 @@ export default class ProductsManager {
         }
     }
 
+    // devuelve un producto por su id 
     getOneById = async (id) => {
         try {
             if(!mongoDB.isValidID(id)) {
@@ -59,6 +61,7 @@ export default class ProductsManager {
         }
     }
 
+    // inserta un nuevo producto (SE PUEDE CREAR DESDE EL FORMULARIO EN /realTimeProducts)
     insertOne = async (data, file) => {
         try {
             const productCreated = new ProductModel(data)
@@ -77,6 +80,7 @@ export default class ProductsManager {
         }
     }
 
+    // actualiza un producto
     updateOneById = async (id, data, file) => {
         try {
             if(!mongoDB.isValidID(id)) {
@@ -120,6 +124,7 @@ export default class ProductsManager {
         }
     }
 
+    // elimina un producto
     deleteOneById = async (id) => {
         try {
             if(!mongoDB.isValidID(id)) {

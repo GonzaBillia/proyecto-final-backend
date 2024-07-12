@@ -9,11 +9,12 @@ export default class CartsManager {
     #cartModel
     #productModel
 
-    constructor () {
+    constructor() {
         this.#cartModel = CartModel
         this.#productModel = ProductModel
     }
 
+    // devuelve la lista completa de carritos, paginado y con posibilidad de ordenarlos
     getAll = async (paramFilters) => {
         try {
             const sort = {
@@ -29,13 +30,14 @@ export default class CartsManager {
                 lean: true,
             };
 
-            const cartsFound = await this.#cartModel.paginate({},paginationOptions)
+            const cartsFound = await this.#cartModel.paginate({}, paginationOptions)
             return cartsFound;
         } catch (error) {
             throw new Error(error.message);
         }
     }
 
+    // devuelve un carrito por su id
     getOneById = async (id) => {
         try {
             if (!mongoDB.isValidID(id)) {
@@ -54,6 +56,7 @@ export default class CartsManager {
         }
     }
 
+    // inserta un nuevo carrito vacio
     insertOne = async () => {
         try {
             const newCart = new CartModel()
@@ -69,31 +72,35 @@ export default class CartsManager {
         }
     }
 
+    // agrega un producto al carrito
     addToCart = async (cid, pid, quantity, data) => {
         try {
-            if(cid !== null || cid !== undefined && pid !== null || pid !== undefined) {
-                if(!mongoDB.isValidID(cid) || !mongoDB.isValidID(pid)) {
+            // Si existe un id de carrito y un id de producto entra al if
+            if (cid !== null || cid !== undefined && pid !== null || pid !== undefined) {
+                if (!mongoDB.isValidID(cid) || !mongoDB.isValidID(pid)) {
                     throw new Error(ERROR_INVALID_ID)
                 }
 
                 const cartFound = await this.#cartModel.findById(cid)
                 const productFound = await this.#productModel.findById(pid)
-        
+
                 if (!cartFound) {
                     throw new Error(ERROR_NOT_FOUND_ID + "value: Cart")
                 }
-        
+
                 if (!productFound) {
                     throw new Error(ERROR_NOT_FOUND_ID + "value: Product")
                 }
 
+                // Verifica si el producto ya existe en el carrito
                 const isNewProduct = !cartFound.products.some(product => product.item == pid)
 
-                if(isNewProduct) {
-                    cartFound.products.push({item: productFound, quantity: quantity})
+                // Si es nuevo lo agrega, sino, lo sobrescribe con su nueva cantidad
+                if (isNewProduct) {
+                    cartFound.products.push({ item: productFound, quantity: quantity })
                     await cartFound.save()
                     return cartFound
-                }else {
+                } else {
                     const index = cartFound.products.findIndex(product => product.item == pid)
 
                     cartFound.products[index].item = productFound
@@ -103,28 +110,29 @@ export default class CartsManager {
                     return cartFound
                 }
 
+            // Si no existe un id de carrito, lo crea y luego añade el producto
             } else if (cid === null || cid === undefined && pid !== null || pid !== undefined) {
                 try {
                     const productFound = await this.#productModel.findById(pid)
-                
+
                     if (!productFound) {
                         throw new Error(ERROR_NOT_FOUND_ID + "value: Product")
                     }
 
-                    if(quantity === undefined) {
+                    if (quantity === undefined) {
                         quantity = 1
                     }
 
                     const newCart = await this.insertOne()
 
-                    newCart.products.push({item: productFound, quantity: quantity})
+                    newCart.products.push({ item: productFound, quantity: quantity })
                     await newCart.save()
                     return newCart
                 } catch (error) {
                     if (error instanceof mongoose.Error.ValidationError) {
                         error.message = Object.values(error.errors)[0]
                     }
-        
+
                     throw new Error(error.message)
                 }
             } else {
@@ -139,9 +147,10 @@ export default class CartsManager {
         }
     }
 
+    // actualiza el carrito con el array de productos que pase por body
     updateOneById = async (cid, data) => {
         try {
-            if(!mongoDB.isValidID(cid)) {
+            if (!mongoDB.isValidID(cid)) {
                 throw new Error(ERROR_INVALID_ID)
             }
 
@@ -152,19 +161,20 @@ export default class CartsManager {
             }
 
             data.products.forEach(product => {
-                cartFound.products.push({item: product.item, quantity: product.quantity})
-                    
+                cartFound.products.push({ item: product.item, quantity: product.quantity })
+
             })
             await cartFound.save()
-                    return cartFound
+            return cartFound
         } catch (error) {
             throw new Error(error.message)
         }
     }
 
+    // Elimina un producto del carrito
     deleteOneById = async (cid, pid) => {
         try {
-            if(!mongoDB.isValidID(pid) || !mongoDB.isValidID(cid)) {
+            if (!mongoDB.isValidID(pid) || !mongoDB.isValidID(cid)) {
                 throw new Error(ERROR_INVALID_ID)
             }
 
@@ -174,14 +184,14 @@ export default class CartsManager {
             if (!cartFound) {
                 throw new Error(ERROR_NOT_FOUND_ID + "value: Cart")
             }
-    
+
             if (!productFound) {
                 throw new Error(ERROR_NOT_FOUND_ID + "value: Product")
             }
 
             const index = cartFound.products.findIndex(product => product.item == pid)
 
-            if(index == -1) {
+            if (index == -1) {
                 throw new Error(ERROR_NOT_FOUND_ID + "value: Product")
             }
 
@@ -193,9 +203,10 @@ export default class CartsManager {
         }
     }
 
+    // Vacia el Carrito seleccionado
     deleteAll = async (id) => {
         try {
-            if(!mongoDB.isValidID(id)) {
+            if (!mongoDB.isValidID(id)) {
                 throw new Error(ERROR_INVALID_ID)
             }
 
