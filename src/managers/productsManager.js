@@ -1,6 +1,6 @@
 import mongoose from "mongoose"
 import ProductModel from "../models/product.model.js"
-import mongoDB from "../config/mongoose.config.js"
+import mongoDB from "../../../backend-user-auth/src/config/mongoose.config.js"
 import fileSystem from "../utils/fileSystem.js"
 
 import { ERROR_INVALID_ID, ERROR_NOT_FOUND_ID } from "../constants/messages.constant.js"

@@ -8,7 +8,7 @@ import homeRouter from "./routes/home.router.js"
 import productRouter from "./routes/product.router.js"
 import cartRouter from "./routes/cart.router.js"
 import handlebarsConfig from "./config/handlebars.config.js"
-import mongoDB from "./config/mongoose.config.js"
+import mongoDB from "../../backend-user-auth/src/config/mongoose.config.js"
 
 import { ERROR_NOT_FOUND_URL, ERROR_SERVER } from "./constants/messages.constant.js"
 
